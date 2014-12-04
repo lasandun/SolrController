@@ -20,19 +20,38 @@ import org.apache.axiom.om.impl.llom.util.AXIOMUtil;
  */
 public class SolrQueryUtil {
     
-    public static int wrodFreqency(String word, String catagory, String field) throws XMLStreamException, UnsupportedEncodingException {
+    public static int wordFreqency(String word, String catagory, String field) throws XMLStreamException, UnsupportedEncodingException {
         word = Util.encodeURL(word);
         String query = "select?q=" + field + ":" + word + "&fl=,fl:termfreq(" + field + "," + word + ")";
         String result = execQuery(query, catagory);
         
-        // read the query time from the xml file
+        // calculate the result from the result query
         OMElement documentElement = AXIOMUtil.stringToOM(result);
         OMElement resultDoc = documentElement.getFirstChildWithName(new QName("result"));
-        OMElement docDoc = resultDoc.getFirstChildWithName(new QName("doc"));
-        Iterator childElem = docDoc.getChildElements();
+        Iterator docElements = resultDoc.getChildElements();
         int count = 0;
-        while(childElem.hasNext()) {
-            OMElement intElement = (OMElement) childElem.next();
+        while(docElements.hasNext()) {
+            OMElement intElement = ((OMElement) docElements.next()).getFirstChildWithName(new QName("int"));
+            count += Integer.parseInt(intElement.getText());
+        }
+        return count;
+    }
+    
+    public static int wordFrequencyInPeriod(String word, String catagory, String field,
+            String startDate, String endDate) throws UnsupportedEncodingException, XMLStreamException {
+        
+        word = Util.encodeURL(word);
+        String query = "select?q=" + field + ":" + word + "&date:[" + startDate + "%20TO%20" + endDate 
+                + "]&fl=,fl:termfreq(" + field + "," + word + ")";
+        String result = execQuery(query, catagory);
+        
+        // calculate the result from the result query
+        OMElement documentElement = AXIOMUtil.stringToOM(result);
+        OMElement resultDoc = documentElement.getFirstChildWithName(new QName("result"));
+        Iterator docElements = resultDoc.getChildElements();
+        int count = 0;
+        while(docElements.hasNext()) {
+            OMElement intElement = ((OMElement) docElements.next()).getFirstChildWithName(new QName("int"));
             count += Integer.parseInt(intElement.getText());
         }
         return count;
@@ -43,8 +62,9 @@ public class SolrQueryUtil {
         try {
             // create connection and query to Solr Server
             String serverUrl = Util.refactorDirPath(SysProperty.getProperty("solrServerURL"));
-            URL query = new URL(serverUrl + catagory + "/" + q);
-            System.out.println("sending query:" + serverUrl + catagory + "/" + q);
+            String queryString  = serverUrl + "solr/" + catagory + "/" + q;
+            URL query = new URL(queryString);
+            System.out.println("sending query:\n" + queryString);
             URLConnection connection = query.openConnection();
             BufferedReader inputStream = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
             String line;
@@ -59,16 +79,7 @@ public class SolrQueryUtil {
         return content;
     }
     
-    public static int wordFrequencyInPeriod(String word, String catagory, String field,
-            String startDate, String endDate) {
-        
-        
-        
-        int count = 0;
-        return count;
-    }
-    
     public static void main(String[] args) throws XMLStreamException, UnsupportedEncodingException {
-        System.out.println(wrodFreqency("ද", "collection1", "content"));
+        System.out.println(wordFrequencyInPeriod("ද", "collection1", "content", "2012-01-01T23:59:59.999Z", "2014-01-01T23:59:59.999Z"));
     }
 }
