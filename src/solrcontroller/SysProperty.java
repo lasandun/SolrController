@@ -14,7 +14,7 @@ public class SysProperty {
     public static String getProperty(String key) {
         FileInputStream fis = null;
         try {
-            fis = new FileInputStream("/home/lahiru/solr/solr.properties");
+            fis = new FileInputStream("/home/" + System.getProperty("user.name") + "/solr/solr.properties");
             Properties p = new Properties();
             p.load(fis);
             return p.getProperty(key);

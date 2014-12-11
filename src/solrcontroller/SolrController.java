@@ -54,6 +54,11 @@ public class SolrController {
                 SolrParseNUploadUtil.parseNUploadOneXMLFile(args[1], "collection1", "divaina");
             }
             
+            else if(args[0].equals("wildcard_search_demo")) {
+                SolrWildCardSearch x = new SolrWildCardSearch();
+                x.searchAllWildcards();
+            }
+            
             else {
                 System.out.println("Unknown operation : " + args[0]);
                 System.exit(1);

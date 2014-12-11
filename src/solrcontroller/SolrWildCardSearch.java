@@ -40,10 +40,13 @@ public class SolrWildCardSearch {
         return time;
     }
     
-    void searchAllWildcards(String collection) {
-        String words[] = {"*", "*ම*", "මහින්?", "මහින්*", "??න්ද", "*න්ද", "ම*ද"};
+    void searchAllWildcards() {
+        String collection = "collection1";
+//        String words[] = {"*", "*ම*", "මහින්?", "මහින්*", "??න්ද", "*න්ද", "ම*ද"};
+        String words[] = {"ම?"};
         System.out.println("-----------------------------");
         for(String word : words) {
+            System.out.println("###" + word);
             float time = (float) wildcardSearch(word, collection) / 1000;
             System.out.println(time);
         }
@@ -123,8 +126,8 @@ public class SolrWildCardSearch {
     public static void main(String[] args) throws Exception {
         
         SolrWildCardSearch x = new SolrWildCardSearch();
-//        x.searchAllWildcards("collection1");
-        System.out.println();
+        x.searchAllWildcards();
+        //System.out.println();
         
     }
 }
