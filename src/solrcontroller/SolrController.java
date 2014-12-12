@@ -18,8 +18,8 @@ public class SolrController {
         if(args.length > 0) {
             
             if(args[0].equals("parse_xml") && args[1] != null && args[2] != null && args[3] != null) {
-                XMLParser parser = new XMLParser(args[1], args[2], args[3]);
-                parser.parseXMLFiles();
+                //XMLParser parser = new XMLParser(args[1], args[2], args[3]);
+                //parser.parseXMLFiles();
             }
             
             else if(args[0].equals("upload_xml") && args[1] != null && args[2] != null) {
@@ -55,8 +55,8 @@ public class SolrController {
             }
             
             else if(args[0].equals("wildcard_search_demo")) {
-                SolrWildCardSearch x = new SolrWildCardSearch();
-                x.searchAllWildcards();
+                //SolrWildCardSearch x = new SolrWildCardSearch();
+                //x.searchAllWildcards();
             }
             
             else {

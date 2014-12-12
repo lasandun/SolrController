@@ -8,6 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import org.apache.axiom.om.OMAbstractFactory;
@@ -20,14 +22,21 @@ import org.codehaus.stax2.XMLOutputFactory2;
  * @author lahiru
  */
 public class WildCardWordListCreator {
-    int id;
-    OMFactory factory = OMAbstractFactory.getOMFactory();
-    OMElement root = factory.createOMElement(new QName("root"));
-    OMElement add = factory.createOMElement(new QName("add"));
-    
 
+    OMFactory factory;
+    OMElement root;
+    OMElement add;
+    int fileCount;
+    
     public WildCardWordListCreator() {
-        id = 10000000;
+        fileCount = 0;
+        initDoc();
+    }
+    
+    private void initDoc() {
+        factory = OMAbstractFactory.getOMFactory();
+        root = factory.createOMElement(new QName("root"));
+        add = factory.createOMElement(new QName("add"));
     }
     
     public static void createWordFile() throws IOException {
@@ -45,27 +54,62 @@ public class WildCardWordListCreator {
         br.close();
     }
     
-    public void readFileAndAddWords() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/1.xml"));
+    public void parseToXMLs() throws IOException {
+        int count = 0;
+        
+        BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/word.csv"));
         String line;
-        SinhalaDocFilter filter = new SinhalaDocFilter(0.67);
+        //SinhalaDocFilter filter = new SinhalaDocFilter(0.67);
+        br.readLine();
         while((line = br.readLine()) != null) {
-            StringTokenizer st = new StringTokenizer(line, "[\u002E\u003F\u0021\u0020]");
-            while(st.hasMoreElements()) {
-                String word = (String)st.nextElement();
-                if(filter.checkString(word) > 0.5) {
-                    addWord(word);
+            
+            String parts[] = line.split("\u002C");
+            if(parts.length != 3) continue;
+
+            String id = parts[0];
+            String word = parts[1];
+            String freq = parts[2];
+
+            word = word.replaceAll("\"", "");
+            word = word.replaceAll(" ", "");
+            word = word.replaceAll("”", "");
+            word = word.replaceAll("‘", "");
+            word = word.replaceAll("'", "");
+            word = word.replaceAll("“", "");
+
+            addWord(id, word, freq);
+            ++count;
+            
+            if(count > 100000) {
+                try {
+                    System.out.println("wrote" + fileCount);
+                    writeToFile("/home/lahiru/Desktop/parsed/temp" + fileCount + ".xml");
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(WildCardWordListCreator.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (XMLStreamException ex) {
+                    Logger.getLogger(WildCardWordListCreator.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                fileCount++;
+                count = 0;
+                initDoc();
+            }
+        }
+        if(count != 0) {
+            try {
+                writeToFile("/home/lahiru/Desktop/parsed/temp" + fileCount + ".xml");
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(WildCardWordListCreator.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (XMLStreamException ex) {
+                Logger.getLogger(WildCardWordListCreator.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         br.close();
     }
     
-    void addWord(String word) {
+    void addWord(String id, String word, String freq) {
         OMElement doc = factory.createOMElement(new QName("doc"));
         OMElement idField = factory.createOMElement(new QName("field"));
         idField.addAttribute("name", "id", null);
-        String id = this.id + "";
         idField.setText(id);
 
         OMElement contentField = factory.createOMElement(new QName("field"));
@@ -75,13 +119,11 @@ public class WildCardWordListCreator {
         doc.addChild(idField);
         doc.addChild(contentField);
         add.addChild(doc);
-        
-        ++this.id;
     }
     
-    void writeToFile() throws FileNotFoundException, XMLStreamException {
+    void writeToFile(String fileName) throws FileNotFoundException, XMLStreamException {
         root.addChild(add);
-        OutputStream out = new FileOutputStream("/home/lahiru/Desktop/temp.xml");
+        OutputStream out = new FileOutputStream(fileName);
         XMLStreamWriter writer = XMLOutputFactory2.newInstance().createXMLStreamWriter(out);
         root.serialize(writer);
         writer.flush();
@@ -89,7 +131,6 @@ public class WildCardWordListCreator {
     
     public static void main(String[] args) throws FileNotFoundException, XMLStreamException, IOException {
         WildCardWordListCreator x = new WildCardWordListCreator();
-        x.readFileAndAddWords();
-        x.writeToFile();
+        x.parseToXMLs();
     }
 }
