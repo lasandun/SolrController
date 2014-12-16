@@ -130,7 +130,7 @@ public class SolrWildCardSearch {
         SolrWildCardSearch x = new SolrWildCardSearch();
         //String words[] = {"*ම*", "මහින්?", "මහින්*", "??න්ද", "*න්ද", "ම*ද"};
         //String words[] = {"මහින්?", "මහින්*", "??න්ද", "*න්ද", "ම*ද"};
-        String words[] = {"*ම*"};
+        String words[] = {"??න්ද"};
         LinkedList<String> list;
         for(String searchingWord : words) {
             System.out.println("*******************");
@@ -139,11 +139,10 @@ public class SolrWildCardSearch {
             list = x.wildcardSearch(searchingWord, "collection1");
             
             for(String word : list) {
-                //System.out.println(word);
+                System.out.println(word);
             }
             System.out.println("*******************");
         }
-        
     }
 }
 
