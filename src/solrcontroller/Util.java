@@ -130,4 +130,16 @@ public class Util {
         return (1.0 * sinhalaCharCount / (sinhalaCharCount + nonSinhalaCharCount));
     }
     
+    public static void printUnicodeElements(String str) {
+        String parts[] = str.split("");
+        for(int i = 1; i < parts.length; ++i) {
+            System.out.print(parts[i] + " ");
+        }
+        System.out.println();
+    }
+    
+    public static void main(String[] args) {
+        printUnicodeElements("විෙ");
+    }
+    
 }

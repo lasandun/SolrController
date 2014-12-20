@@ -12,13 +12,15 @@ public class SolrWildCardSinhalaWordParser {
                              "ඐ", "එ", "ඒ", "ඓ", "ඔ", "ඕ", "ඖ", "ක", "ඛ", "ග", "ඝ", "ඞ", "ඟ",
                              "ච", "ඡ", "ජ", "ඣ", "ඤ", "ඥ", "ඦ", "ට", "ඨ", "ඩ", "ඪ", "ණ", "ඬ", "ත", "ථ", "ද",
                              "ධ", "න", "ඳ", "ප", "ඵ", "බ", "භ", "ම", "ඹ", "ය", "ර", "ල", 
-                             "ව", "ශ", "ෂ", "ස", "හ", "ළ", "ෆ", "෴" };
+                             "ව", "ශ", "ෂ", "ස", "හ", "ළ", "ෆ", "ං" };
     
-    private static final String sinhalaSubChar[] = {"ං", "ඃ", "්", "ා", "ැ", "ෑ", "ි", "ී", "ු", "ූ", "ෘ", "ෙ", "ේ", "ෛ", "ො", "ෝ",
-                              "ෞ", "ෟ", "ෲ", "ෳ" };
+    private static final String sinhalaVowelSigns[] = {"්", "ා", "ැ", "ෑ", "ි", "ී", "ු", "ූ", "ෘ", "ෙ", "ේ", "ෛ", "ො", "ෝ",
+                              "ෞ", "ෟ", "ෲ", "ෳ", "෴" };
     
-    private static final int multiplyer = 100;
-    private static final int constant = 1;
+    private static final String visargayaSign = "ඃ";
+    
+    //private static final int multiplier = 100;
+    //private static final int addition = 1;
     public static int acceptedCount = 0;
     public static int rejectedCount = 0;
     
@@ -27,7 +29,7 @@ public class SolrWildCardSinhalaWordParser {
         rejectedCount = 0;
     }
     
-    private static int  isASinhalaChar(String c) {
+    private static int  isASinhalaLetter(String c) {
         if(c.length() > 1) {
             System.out.println("char length should be 1 : " + c);
             System.exit(-1);
@@ -40,102 +42,92 @@ public class SolrWildCardSinhalaWordParser {
         return -1;
     }
     
-    private static int  isASinhalaSubChar(String c) {
+    private static int  isASinhalaVowelLetter(String c) {
         if(c.length() > 1) {
             System.out.println("char length should be 1 : " + c);
             System.out.println("Exiting...");
             System.exit(-1);
         }
-        for(int i = 0; i < sinhalaSubChar.length; ++i) {
-            if(c.equals(sinhalaSubChar[i])) {
+        for(int i = 0; i < sinhalaVowelSigns.length; ++i) {
+            if(c.equals(sinhalaVowelSigns[i])) {
                 return i;
             }
         }
         return -1;
     }
     
+    private static boolean  isSinhalaVisargayaLetter(String c) {
+        if(c.length() > 1) {
+            System.out.println("char length should be 1 : " + c);
+            System.out.println("Exiting...");
+            System.exit(-1);
+        }
+        if(c.equals(visargayaSign)) return true;
+        return false;
+    }
+    
     public static String encode(String str) {
         String parts[] = str.split("");
-        LinkedList<Integer> codePoints = new LinkedList<Integer>();
+        LinkedList<SinhalaLetter> letterList = new LinkedList<SinhalaLetter>();
+        
         for(int i = 1; i < parts.length; ++i) {
             String c = parts[i];
-            //System.out.println(c);
-            int charCodePoint = isASinhalaChar(c);
-            int subCharCodePoint;
             
-            // special events - these can occur even when the previous letter is a sub character
-            if(c.equals("ං")) {
-                codePoints.addLast(1);
-                continue;
-            } else if(c.equals("ඃ")) {
-                codePoints.addLast(2);
+            int letter = isASinhalaLetter(c);
+            if(letter >= 0) {
+                letterList.addLast(new SinhalaLetter(letter));
                 continue;
             }
             
+            int vowelLetter = isASinhalaVowelLetter(c);
+            if(vowelLetter >= 0) {
+                SinhalaLetter last = letterList.getLast();
+                last.setVowel(vowelLetter);
+                continue;
+            }
             
-            if(charCodePoint != -1) {
-                codePoints.addLast(charCodePoint * multiplyer);
-                //System.out.println("inserting " + (charCodePoint * multiplyer));
+            else if(isSinhalaVisargayaLetter(c)) {
+                SinhalaLetter last = letterList.getLast();
+                last.setVisargayaSign(true);
+                continue;
             }
-            else if((subCharCodePoint = isASinhalaSubChar(c)) != -1) {
-                if(codePoints.isEmpty()) {
-                    System.out.println("Error -> Invalid word format(may be starting word): " + str);
-                    return null;
-                }
-                int cp = codePoints.pollLast();
-                if((cp  % multiplyer) > 0) {
-                    System.out.println("Error -> Invalid format(may be 2 consecutive sub-chars): " + str);
-                    return null;
-                }
-                codePoints.addLast(cp + subCharCodePoint + constant);
-                //System.out.println("adding subchar : " + subCharCodePoint);
-                //System.out.println("final value : " + (cp + subCharCodePoint));
-            }
+            
             else {
-                System.out.println("Invalid sinhala character(code point) : " + c.codePointAt(0));
-                System.out.println("ratio :" +WildCardWordListCreator.getSinhalaOnlyRatio(str));
-                System.out.println(str);
-                System.out.println("Exiting...");
+                System.out.println("Error char :" + c);
                 System.exit(-1);
             }
         }
+        
         String encoded = "";
-        for(Integer cp : codePoints) {
-            if(cp > 100) encoded += cp + ".";
-            else         encoded += "000" + cp + ".";
+        for(SinhalaLetter letter : letterList) {
+            encoded += letter.getValue() + ".";
         }
         return encoded;
     }
     
     public static String decode(String str) {
-        String parts[] = str.split("[\u002E]");
-        String decodedString = "";
+        String parts[] = str.split("\\.");
+        String decoded = "";
         for(String s : parts) {
-            //System.out.println(s);
+            boolean visargaya;
+            int sinhalaLetter;
+            int sinhalaVowelSign;
             int val = Integer.parseInt(s);
-            // handling ං & ඃ
-            if(val < 100) {
-               if(val == 1) {
-                   decodedString += "ං";
-                   continue;
-               } else if(val == 2) {
-                   decodedString += "ඃ";
-                   continue;
-               }
-            }
             
-            int charIndex = val / multiplyer;
-            int subCharIndex = (val % multiplyer) - constant;
-            //System.out.print(sinhalaChars[charIndex]);
-            decodedString += sinhalaChars[charIndex];
-            if(subCharIndex >= 0) {
-                //System.out.print(sinhalaSubChar[subCharIndex]);
-                decodedString += sinhalaSubChar[subCharIndex];
+            sinhalaLetter = val / 1000;
+            val = val % 1000;
+            decoded += sinhalaChars[sinhalaLetter - 1];
+            
+            sinhalaVowelSign = val /  10;
+            if(sinhalaVowelSign > 0) {
+                decoded += sinhalaVowelSigns[sinhalaVowelSign - 1];
             }
-            //System.out.println("------------");
+            val = val % 10;
+            
+            if(val > 0) decoded += visargayaSign;
         }
         
-        return decodedString;
+        return decoded;
     }
     
     public static void checkEncodeNDecode(String s) {
@@ -154,20 +146,40 @@ public class SolrWildCardSinhalaWordParser {
         }
     }
     
-    public static void printElements(String str) {
-        String parts[] = str.split("");
-        for(String s : parts) {
-            System.out.println(s);
-        }
+    public static void main(String[] args) {
+        String str = "විෙ";
+        String encoded = encode(str);
+        System.out.println(encoded);
+        String decoded = decode(encoded);
+        System.out.println(decoded);
+        System.out.println(str.equals(decoded));
+    }
+}
+
+class SinhalaLetter {
+    private boolean visargaya;
+    private int sinhalaLetter;
+    private int sinhalaVowelSign;
+
+    public SinhalaLetter(int sinhalaLetter) {
+        visargaya = false;
+        sinhalaVowelSign = 0;
+        this.sinhalaLetter = sinhalaLetter + 1;
     }
     
-    public static void main(String[] args) {
-//        SorlWildCardSinhalaWordParser x = new SorlWildCardSinhalaWordParser();
-//        String s = x.encode("විවෘතය");
-//        System.out.println(s);
-//        s = x.decode(s);
-//        System.out.println(s);
-        
-        checkEncodeNDecode("කලාංගයන්");
+    public void setVowel(int sinhalaVowelSignIndex) {
+        this.sinhalaVowelSign = sinhalaVowelSignIndex + 1;
     }
+    
+    public void setVisargayaSign(boolean visargaya) {
+        this.visargaya = visargaya;
+    }
+    
+    public String getValue() {
+        String val = "";
+        int visargayaVal = visargaya ? 1 : 0;
+        val = String.format("%02d", sinhalaLetter) + String.format("%02d", sinhalaVowelSign) + visargayaVal;
+        return val;
+    }
+    
 }

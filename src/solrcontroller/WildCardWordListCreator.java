@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.LinkedList;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
@@ -45,7 +44,7 @@ public class WildCardWordListCreator {
         root = factory.createOMElement(new QName("root"));
         add = factory.createOMElement(new QName("add"));
     }
-    
+    static int k = 0;
     public static void createWordFile() throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/content.txt"));
         String line;
@@ -58,7 +57,19 @@ public class WildCardWordListCreator {
             for(String s : parts) {
                 writer.write(s);
                 writer.write("\n");
+                String encoded = SolrWildCardSinhalaWordParser.encode(s);
+                //System.out.println(encoded);
+                String decoded = SolrWildCardSinhalaWordParser.decode(encoded);
+                ++k;
+               // System.out.println(decoded);
                 //System.out.println(s);
+                if(!s.equals(decoded)) {
+                    System.out.println(k);
+                    System.out.println(encoded);
+                    System.out.println(decoded);
+                    Util.printUnicodeElements(s);
+                    System.out.println("---------------------");
+                }
             }
         }
         writer.close();
@@ -81,8 +92,6 @@ public class WildCardWordListCreator {
                 System.out.println();
             }
         }
-        
-        
         writer.close();
         br.close();
     }
@@ -200,6 +209,6 @@ public class WildCardWordListCreator {
     
     public static void main(String[] args) throws FileNotFoundException, XMLStreamException, IOException {
         WildCardWordListCreator x = new WildCardWordListCreator();
-        WildCardWordListCreator.createLineFile();
+        WildCardWordListCreator.createWordFile();
     }
 }
