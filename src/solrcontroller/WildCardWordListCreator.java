@@ -47,22 +47,33 @@ public class WildCardWordListCreator {
     }
     
     public static void createWordFile() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/word.csv"));
+        BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/content.txt"));
         String line;
         FileWriter writer = new FileWriter("/home/lahiru/Desktop/words.txt");
-//        while((line = br.readLine()) != null) {
-//            StringTokenizer st = new StringTokenizer(line, "[\u002E\u003F\u0021\u0020]");
-//            while(st.hasMoreElements()) {
-//                writer.write((String)st.nextElement());
-//                writer.write("\n");
-//            }
-//        }
         
-        
-        SinhalaWordTokenizer st = new SinhalaWordTokenizer();
+        SinhalaTokenizer st = new SinhalaTokenizer();
         while((line = br.readLine()) != null) {
             //System.out.println(line);
-            LinkedList<String> parts = st.splitPhrase(line);
+            LinkedList<String> parts = st.splitWords(line);
+            for(String s : parts) {
+                writer.write(s);
+                writer.write("\n");
+                //System.out.println(s);
+            }
+        }
+        writer.close();
+        br.close();
+    }
+    
+    public static void createLineFile() throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/content.txt"));
+        String line;
+        FileWriter writer = new FileWriter("/home/lahiru/Desktop/lines.txt");
+        
+        SinhalaTokenizer st = new SinhalaTokenizer();
+        while((line = br.readLine()) != null) {
+            //System.out.println(line);
+            LinkedList<String> parts = st.splitLines(line);
             for(String s : parts) {
                 writer.write(s);
                 writer.write("\n");
@@ -188,10 +199,6 @@ public class WildCardWordListCreator {
     
     public static void main(String[] args) throws FileNotFoundException, XMLStreamException, IOException {
         WildCardWordListCreator x = new WildCardWordListCreator();
-//        SolrWildCardSinhalaWordParser.resetCounters();
-//        x.parseToXMLs(true);
-//        System.out.println("accepted: " + SolrWildCardSinhalaWordParser.acceptedCount);
-//        System.out.println("rejected: " + SolrWildCardSinhalaWordParser.rejectedCount);
-        x.createWordFile();
+        WildCardWordListCreator.createLineFile();
     }
 }
