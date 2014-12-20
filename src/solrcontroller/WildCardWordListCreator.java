@@ -73,7 +73,7 @@ public class WildCardWordListCreator {
         SinhalaTokenizer st = new SinhalaTokenizer();
         while((line = br.readLine()) != null) {
             //System.out.println(line);
-            LinkedList<String> parts = st.splitLines(line);
+            LinkedList<String> parts = st.splitSentences(line);
             for(String s : parts) {
                 writer.write(s);
                 writer.write("\n");

@@ -11,6 +11,8 @@ public class SinhalaTokenizer {
     
     private LinkedList<String> ignoringCharList;
     
+    private boolean isolatePunctuationsWithSpaces;
+    
     public final String punctuationMarks[] = {".", ",", "\n", " ", "¸", "‚",
                                     "\"", "/", "-", "|", "\\", "—", "¦",
                                     "”", "‘", "'", "“", "’", "´", "´",
@@ -42,6 +44,17 @@ public class SinhalaTokenizer {
                                                                     ":", ";",
                                                                     "\u2013"
                                                                     };
+    
+    public final String shortForms[] = {"ඒ\\.", "බී\\.", "සී\\.", "ඩී\\.", "ඊ\\.", "එෆ්\\.", "ජී\\.", "එච්\\.",
+                                        "අයි\\.", "ජේ\\.", "කේ\\.", "එල්\\.", "එම්\\.", "එන්\\.", "ඕ\\.",
+                                        "පී\\.", "කිව්\\.", "ආර්\\.", "එස්\\.", "ටී\\.", "යූ\\.", "ඩබ්\\.", "ඩබ්ලිව්\\.",
+                                        "එක්ස්\\.", "වයි\\.", "ඉසෙඩ්\\.",
+                                        "පෙ\\.", "ව\\.",
+                                        "රු.",
+                                        "0\\.", "1\\.", "2\\.", "3\\.", "4\\.", "5\\.", "6\\.", "7\\.", "8\\.", "9\\."
+                                       };
+    
+    public final String shortFormIdentifier = "✱";
     
     public final String lineTokenizerDelims;
     
@@ -152,6 +165,15 @@ public class SinhalaTokenizer {
     }
     
     public SinhalaTokenizer() {
+        isolatePunctuationsWithSpaces = false;
+        
+        for(String s : punctuationsWithoutLineTokenizingChars) {
+            if(s.equals(shortFormIdentifier)) {
+                System.out.println("Do not use " + shortFormIdentifier + " at punctuation list.");
+                System.exit(-1);
+            }
+        }
+        
         // init ignoring chars
         ignoringCharList = new LinkedList<String>();
         initIgnoringChars();
@@ -177,6 +199,10 @@ public class SinhalaTokenizer {
         }
         tmp += "]";
         lineTokenizerDelims = tmp;
+    }
+    
+    public void setIsolatePunctuationsWithSpaces(boolean state) {
+        isolatePunctuationsWithSpaces = state;
     }
     
     private boolean isASinhalaLetter(String s) {
@@ -220,8 +246,8 @@ public class SinhalaTokenizer {
         return list;
     }
     
-    public LinkedList<String> splitLines(String str) {
-        LinkedList<String> lineList = new LinkedList<String>();
+    public LinkedList<String> splitSentences(String str) {
+        LinkedList<String> sentenceList = new LinkedList<String>();
         // remove ignoring chars from document
         for(String ignoringChar : ignoringCharList) {
             if(str.contains(ignoringChar)) {
@@ -231,17 +257,31 @@ public class SinhalaTokenizer {
         
         // stop words being present with a punctuation at start or end of the word
         // Eg: word?     word,
-        for(String punctuation : punctuationsWithoutLineTokenizingChars) {
-            System.out.println(punctuation);
-            str = str.replaceAll(punctuation, " " + punctuation + " ");
+        if(isolatePunctuationsWithSpaces) { // default is set to FALSE
+            for(String punctuation : punctuationsWithoutLineTokenizingChars) {
+                str = str.replaceAll(punctuation, " " + punctuation + " ");
+            }
         }
+        
+        // prevent short froms being splitted into sentences
+        for(String shortForm : shortForms) {
+            String representation = shortForm.substring(0, shortForm.length() - 1) + shortFormIdentifier;
+            str = str.replaceAll(shortForm, representation);
+        }
+        
         //split lines
         String parts[] = str.split(lineTokenizerDelims);
-        for(String line : parts) {
-            System.out.println(line);
-            lineList.addLast(line);
+        for(String sentence : parts) {
+            sentence = sentence.replaceAll(shortFormIdentifier, ".");
+            sentence = sentence.trim();
+            
+            if(!sentence.equals("")) {
+                sentenceList.addLast(sentence);
+            }
+            
+            System.out.println(sentence);
         }
-        return lineList;
+        return sentenceList;
     }
     
     public static void main(String[] args) throws IOException {
