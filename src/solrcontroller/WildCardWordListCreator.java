@@ -138,7 +138,7 @@ public class WildCardWordListCreator {
         br.readLine();
         while((line = br.readLine()) != null) {
             
-            String word = SolrWildCardSinhalaWordParser.encode(line);
+            String word = line;
             String docID = String.format("%06d", this.id++);
             
 //            if(!isAcceptedWord(line)) {
@@ -180,6 +180,7 @@ public class WildCardWordListCreator {
     }
     
     private void addWord(String id, String word, String freq) {
+        String encoded = SolrWildCardSinhalaWordParser.encode(word);
         OMElement doc = factory.createOMElement(new QName("doc"));
         OMElement idField = factory.createOMElement(new QName("field"));
         idField.addAttribute("name", "id", null);
@@ -189,8 +190,18 @@ public class WildCardWordListCreator {
         contentField.addAttribute("name", "content", null);
         contentField.setText(new QName(word));
         
+        OMElement encodedField = factory.createOMElement(new QName("field"));
+        encodedField.addAttribute("name", "encoded", null);
+        encodedField.setText(new QName(encoded));
+        
+        OMElement frequencyField = factory.createOMElement(new QName("field"));
+        frequencyField.addAttribute("name", "frequency", null);
+        frequencyField.setText(new QName(freq));
+        
         doc.addChild(idField);
         doc.addChild(contentField);
+        doc.addChild(encodedField);
+        doc.addChild(frequencyField);
         add.addChild(doc);
     }
     

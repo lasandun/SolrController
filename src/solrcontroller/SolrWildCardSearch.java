@@ -30,14 +30,16 @@ public class SolrWildCardSearch {
         serverUrl = SysProperty.getProperty("solrServerURL");
     }
     
-    LinkedList<String> wildcardSearch(String word, String collection) {
+    LinkedList<String> wildCardSearchEncoded(String word, String collection) {
         String encoded = SolrWildCardSinhalaWordParser.encode(word);
-        System.out.println("encoded :" + encoded);
-        String query = "select?q=content:" + encoded + "&fl=content&rows=1400000";
+        String query = "select?q=encoded:" + encoded + "&fl=content&rows=1400000";
         LinkedList<String> wordList = execQuery(query, collection);
-        for(String s : wordList) {
-            System.out.println(SolrWildCardSinhalaWordParser.decode(s));
-        }
+        return wordList;
+    }
+    
+    LinkedList<String> wildCardSearch(String word, String collection) {
+        String query = "select?q=content:" + word + "&fl=content&rows=1400000";
+        LinkedList<String> wordList = execQuery(query, collection);
         return wordList;
     }
     
@@ -73,7 +75,6 @@ public class SolrWildCardSearch {
                 String w = word.getText();
                 matchingList.addLast(w);
             }
-            System.out.println("count = " + count);
         } catch (XMLStreamException ex) {
             Logger.getLogger(SolrWildCardSearch.class.getName()).log(Level.SEVERE, null, ex);
         } catch(MalformedURLException ex) {
@@ -119,11 +120,15 @@ public class SolrWildCardSearch {
     
     
     public static void main(String[] args) throws Exception {
-        
+        String word = "මහ?";
         SolrWildCardSearch x = new SolrWildCardSearch();
-        //String words[] = {"*ම*", "මහින්?", "මහින්*", "??න්ද", "*න්ද", "ම*ද"};
-        //String words[] = {"මහින්?", "මහින්*", "??න්ද", "*න්ද", "ම*ද"};
-        x.wildcardSearch("මහින්?", "collection1");
+        LinkedList<String> list = x.wildCardSearchEncoded(word, "collection1");
+        System.out.println("word: " + word);
+        System.out.println("encoded: " + SolrWildCardSinhalaWordParser.encode(word));
+        System.out.println("count: " + list.size());
+        for(String s : list) {
+            System.out.println(s);
+        }
        
     }
 }
