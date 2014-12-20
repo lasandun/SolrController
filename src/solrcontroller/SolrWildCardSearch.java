@@ -31,22 +31,15 @@ public class SolrWildCardSearch {
     }
     
     LinkedList<String> wildcardSearch(String word, String collection) {
-        String query = "select?q=content:" + encordeWildcardSyntaxToTURL(word) + "&fl=content&rows=1400000";
+        String encoded = SolrWildCardSinhalaWordParser.encode(word);
+        System.out.println("encoded :" + encoded);
+        String query = "select?q=content:" + encoded + "&fl=content&rows=1400000";
         LinkedList<String> wordList = execQuery(query, collection);
+        for(String s : wordList) {
+            System.out.println(SolrWildCardSinhalaWordParser.decode(s));
+        }
         return wordList;
     }
-    
-//    void searchAllWildcards() {
-//        String collection = "collection1";
-//        String words[] = {"*", "*ම*", "මහින්?", "මහින්*", "??න්ද", "*න්ද", "ම*ද"};
-//        System.out.println("-----------------------------");
-//        for(String word : words) {
-//            System.out.println("###" + word);
-//            float time = (float) wildcardSearchReceiveWords(word, collection) / 1000;
-//            System.out.println(time);
-//        }
-//        System.out.println("-----------------------------");
-//    }
     
     LinkedList<String> execQuery(String q, String collection) {
         LinkedList<String> matchingList = new LinkedList<String>();
@@ -88,11 +81,11 @@ public class SolrWildCardSearch {
         } catch(IOException ex) {
             Logger.getLogger(SolrWildCardSearch.class.getName()).log(Level.SEVERE, null, ex);
         } 
-        System.out.println("time: " + (time / 1000000));
+        //System.out.println("time: " + (time / 1000000));
         return matchingList;
     }
     
-    String encordeWildcardSyntaxToTURL(String word) {
+    private String encordeWildcardSyntaxToTURL(String word) {
         String parts[] = word.split("\\?");
         if(parts.length == 1) {
             if(parts[0].length() == word.length()) {
@@ -130,19 +123,8 @@ public class SolrWildCardSearch {
         SolrWildCardSearch x = new SolrWildCardSearch();
         //String words[] = {"*ම*", "මහින්?", "මහින්*", "??න්ද", "*න්ද", "ම*ද"};
         //String words[] = {"මහින්?", "මහින්*", "??න්ද", "*න්ද", "ම*ද"};
-        String words[] = {"??න්ද"};
-        LinkedList<String> list;
-        for(String searchingWord : words) {
-            System.out.println("*******************");
-            System.out.println("");
-            System.out.println(searchingWord);
-            list = x.wildcardSearch(searchingWord, "collection1");
-            
-            for(String word : list) {
-                System.out.println(word);
-            }
-            System.out.println("*******************");
-        }
+        x.wildcardSearch("මහින්?", "collection1");
+       
     }
 }
 

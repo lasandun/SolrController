@@ -31,8 +31,10 @@ public class WildCardWordListCreator {
     int rejectedWordsCount;
     int acceptedWordCount;
     private boolean debug = false;
+    private int id;
     
     public WildCardWordListCreator() {
+        id = 0;
         fileCount = 0;
         rejectedWordsCount = 0;
         acceptedWordCount = 0;
@@ -44,7 +46,10 @@ public class WildCardWordListCreator {
         root = factory.createOMElement(new QName("root"));
         add = factory.createOMElement(new QName("add"));
     }
-    static int k = 0;
+    
+    /*
+     * create a word list from a given text file
+     */
     public static void createWordFile() throws IOException {
         BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/content.txt"));
         String line;
@@ -52,23 +57,20 @@ public class WildCardWordListCreator {
         
         SinhalaTokenizer st = new SinhalaTokenizer();
         while((line = br.readLine()) != null) {
-            //System.out.println(line);
             LinkedList<String> parts = st.splitWords(line);
             for(String s : parts) {
-                writer.write(s);
-                writer.write("\n");
                 String encoded = SolrWildCardSinhalaWordParser.encode(s);
-                //System.out.println(encoded);
                 String decoded = SolrWildCardSinhalaWordParser.decode(encoded);
-                ++k;
-               // System.out.println(decoded);
-                //System.out.println(s);
+                
                 if(!s.equals(decoded)) {
-                    System.out.println(k);
                     System.out.println(encoded);
                     System.out.println(decoded);
                     Util.printUnicodeElements(s);
                     System.out.println("---------------------");
+                }
+                else {
+                    writer.write(s);
+                    writer.write("\n");
                 }
             }
         }
@@ -96,6 +98,7 @@ public class WildCardWordListCreator {
         br.close();
     }
     
+    
     public static double getSinhalaOnlyRatio(String str) {
         // sinhala unicode range is 0D80–0DFF. (from http://ucsc.cmb.ac.lk/ltrl/publications/uni_sin.pdf )
         int sinhalaLowerBound = 3456;
@@ -122,40 +125,32 @@ public class WildCardWordListCreator {
         return (getSinhalaOnlyRatio(word) > 0.99);
     }
     
+    /*
+     * create solr supported xml files which consist of words which were extracted
+     * from a given text file.
+     */
     public void parseToXMLs(boolean checkForIncorrectWords) throws IOException {
         int count = 0;
         
-        BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/word.csv"));
+        BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/words.txt"));
         String line;
         //SinhalaDocFilter filter = new SinhalaDocFilter(0.67);
         br.readLine();
         while((line = br.readLine()) != null) {
             
-            String parts[] = line.split("\u002C");
-            if(parts.length != 3) continue;
-
-            String id = parts[0];
-            String word = parts[1];
-            String freq = parts[2];
-
-            word = word.replaceAll("\"", "");
-            word = word.replaceAll(" ", "");
-            word = word.replaceAll("”", "");
-            word = word.replaceAll("‘", "");
-            word = word.replaceAll("'", "");
-            word = word.replaceAll("“", "");
+            String word = SolrWildCardSinhalaWordParser.encode(line);
+            String docID = String.format("%06d", this.id++);
             
-            if(!isAcceptedWord(word)) {
-                if(debug) System.out.println("not accepted: " + word);
-                ++rejectedWordsCount;
-                continue;
-            } else {
-                acceptedWordCount++;
-            }
+//            if(!isAcceptedWord(line)) {
+//                if(debug) System.out.println("not accepted: " + word);
+//                ++rejectedWordsCount;
+//                continue;
+//            } else {
+//                acceptedWordCount++;
+//            }
+            //if(checkForIncorrectWords) SolrWildCardSinhalaWordParser.checkEncodeNDecode(word);
             
-            if(checkForIncorrectWords) SolrWildCardSinhalaWordParser.checkEncodeNDecode(word);
-            
-            addWord(id, word, freq);
+            addWord(docID, word, "1");
             ++count;
             
             if(count > 100000) {
@@ -184,7 +179,7 @@ public class WildCardWordListCreator {
         br.close();
     }
     
-    void addWord(String id, String word, String freq) {
+    private void addWord(String id, String word, String freq) {
         OMElement doc = factory.createOMElement(new QName("doc"));
         OMElement idField = factory.createOMElement(new QName("field"));
         idField.addAttribute("name", "id", null);
@@ -199,7 +194,7 @@ public class WildCardWordListCreator {
         add.addChild(doc);
     }
     
-    void writeToFile(String fileName) throws FileNotFoundException, XMLStreamException {
+    private void writeToFile(String fileName) throws FileNotFoundException, XMLStreamException {
         root.addChild(add);
         OutputStream out = new FileOutputStream(fileName);
         XMLStreamWriter writer = XMLOutputFactory2.newInstance().createXMLStreamWriter(out);
@@ -209,6 +204,6 @@ public class WildCardWordListCreator {
     
     public static void main(String[] args) throws FileNotFoundException, XMLStreamException, IOException {
         WildCardWordListCreator x = new WildCardWordListCreator();
-        WildCardWordListCreator.createWordFile();
+        x.parseToXMLs(false);
     }
 }

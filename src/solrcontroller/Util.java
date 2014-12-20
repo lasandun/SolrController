@@ -138,8 +138,4 @@ public class Util {
         System.out.println();
     }
     
-    public static void main(String[] args) {
-        printUnicodeElements("විෙ");
-    }
-    
 }

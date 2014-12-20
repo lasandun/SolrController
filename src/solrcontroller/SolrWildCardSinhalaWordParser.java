@@ -24,6 +24,8 @@ public class SolrWildCardSinhalaWordParser {
     public static int acceptedCount = 0;
     public static int rejectedCount = 0;
     
+    public static final String letterSeparator = "a";
+    
     public static void resetCounters() {
         acceptedCount = 0;
         rejectedCount = 0;
@@ -73,6 +75,15 @@ public class SolrWildCardSinhalaWordParser {
         for(int i = 1; i < parts.length; ++i) {
             String c = parts[i];
             
+            // handle * and ?
+            if(c.equals("*")) {
+                letterList.addLast(new SinhalaLetter("*"));
+                continue;
+            } else if(c.equals("?")) {
+                letterList.addLast(new SinhalaLetter("?????"));
+                continue;
+            }
+            
             int letter = isASinhalaLetter(c);
             if(letter >= 0) {
                 letterList.addLast(new SinhalaLetter(letter));
@@ -81,6 +92,10 @@ public class SolrWildCardSinhalaWordParser {
             
             int vowelLetter = isASinhalaVowelLetter(c);
             if(vowelLetter >= 0) {
+                if(letterList.isEmpty()) {
+                    System.out.println("vowel char at start of the word :" + str);
+                    return null;
+                }
                 SinhalaLetter last = letterList.getLast();
                 last.setVowel(vowelLetter);
                 continue;
@@ -100,16 +115,22 @@ public class SolrWildCardSinhalaWordParser {
         
         String encoded = "";
         for(SinhalaLetter letter : letterList) {
-            encoded += letter.getValue() + ".";
+            if(letter.isSearchLetter()) {
+                encoded += letter.getSearchLetter() + letterSeparator;
+            }
+            else {
+                encoded += letter.getValue() + letterSeparator;
+            }
         }
         return encoded;
     }
     
     public static String decode(String str) {
-        String parts[] = str.split("\\.");
+        if(str == null) return null;
+        
+        String parts[] = str.split(letterSeparator);
         String decoded = "";
         for(String s : parts) {
-            boolean visargaya;
             int sinhalaLetter;
             int sinhalaVowelSign;
             int val = Integer.parseInt(s);
@@ -147,12 +168,15 @@ public class SolrWildCardSinhalaWordParser {
     }
     
     public static void main(String[] args) {
-        String str = "විෙ";
-        String encoded = encode(str);
-        System.out.println(encoded);
-        String decoded = decode(encoded);
-        System.out.println(decoded);
-        System.out.println(str.equals(decoded));
+//        String str = "බංග්ලාදේශ*";
+//        System.out.println(str);
+//        String encoded = encode(str);
+//        System.out.println(encoded);
+//        
+//        if(true) {
+//            String decoded = decode("46000a60000a21010a52020a40110a54000a50000a32000a");
+//            System.out.println(decoded);
+//        }
     }
 }
 
@@ -160,11 +184,25 @@ class SinhalaLetter {
     private boolean visargaya;
     private int sinhalaLetter;
     private int sinhalaVowelSign;
+    private String searchLetter;
+    
+    public SinhalaLetter(String searchLetter) {
+        this.searchLetter = searchLetter;
+    }
+    
+    public boolean isSearchLetter() {
+        return (searchLetter != null);
+    }
+    
+    public String getSearchLetter() {
+        return searchLetter;
+    }
 
     public SinhalaLetter(int sinhalaLetter) {
         visargaya = false;
         sinhalaVowelSign = 0;
         this.sinhalaLetter = sinhalaLetter + 1;
+        searchLetter = null;
     }
     
     public void setVowel(int sinhalaVowelSignIndex) {
