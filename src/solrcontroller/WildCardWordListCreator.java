@@ -76,8 +76,9 @@ public class WildCardWordListCreator {
             LinkedList<String> parts = st.splitSentences(line);
             for(String s : parts) {
                 writer.write(s);
-                writer.write("\n");
-                //System.out.println(s);
+                writer.write("\n\n");
+                System.out.println(s);
+                System.out.println();
             }
         }
         

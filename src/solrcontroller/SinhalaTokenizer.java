@@ -50,7 +50,8 @@ public class SinhalaTokenizer {
                                         "පී\\.", "කිව්\\.", "ආර්\\.", "එස්\\.", "ටී\\.", "යූ\\.", "ඩබ්\\.", "ඩබ්ලිව්\\.",
                                         "එක්ස්\\.", "වයි\\.", "ඉසෙඩ්\\.",
                                         "පෙ\\.", "ව\\.",
-                                        "රු.",
+                                        "රු\\.",
+                                        "පා\\.", // parliment
                                         "0\\.", "1\\.", "2\\.", "3\\.", "4\\.", "5\\.", "6\\.", "7\\.", "8\\.", "9\\."
                                        };
     
@@ -217,6 +218,15 @@ public class SinhalaTokenizer {
        return false;
     }
     
+    private boolean containsSinhala(String s) {
+        for(int i = 0; i < s.length(); ++i) {
+            if(isASinhalaLetter(s.charAt(i) + "")) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public LinkedList<String> splitWords(String str) {
         // remove ignoring chars from document
         for(String ignoringChar : ignoringCharList) {
@@ -275,11 +285,9 @@ public class SinhalaTokenizer {
             sentence = sentence.replaceAll(shortFormIdentifier, ".");
             sentence = sentence.trim();
             
-            if(!sentence.equals("")) {
+            if(containsSinhala(sentence)) {    // filter empty sentences and non-sinhala sentences
                 sentenceList.addLast(sentence);
             }
-            
-            System.out.println(sentence);
         }
         return sentenceList;
     }
