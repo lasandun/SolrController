@@ -228,10 +228,14 @@ public class SinhalaTokenizer {
                 str = str.replaceAll(ignoringChar, "");
             }
         }
+        
+        // stop words being present with a punctuation at start or end of the word
+        // Eg: word?     word,
         for(String punctuation : punctuationsWithoutLineTokenizingChars) {
             System.out.println(punctuation);
             str = str.replaceAll(punctuation, " " + punctuation + " ");
         }
+        //split lines
         String parts[] = str.split(lineTokenizerDelims);
         for(String line : parts) {
             System.out.println(line);
