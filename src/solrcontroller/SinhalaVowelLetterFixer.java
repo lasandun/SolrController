@@ -128,9 +128,12 @@ public class SinhalaVowelLetterFixer {
                          return;
                      }
                      else {
-                         System.out.println("Error : can't fix " + lastVowelSign + " + " + c);
                          if(appendUnresolvedConsecutiveVowelChars) {
+                             System.out.println("**********************************************");
                              lastVowelSign += c;
+                         }
+                         else {
+                             System.out.println("Error : can't fix " + lastVowelSign + " + " + c);
                          }
                          return;
                      }
@@ -174,19 +177,19 @@ public class SinhalaVowelLetterFixer {
         lastLetter = "";
     }
     
+    // take only first vowel sign if consecutive unsolvable vowel signs present
     public void setAppendUnresolvedConsecutiveVowelChars(boolean val) {
         appendUnresolvedConsecutiveVowelChars = val;
     }
     
     public void TestFixer() throws IOException{
-        SinhalaVowelLetterFixer fixer = new SinhalaVowelLetterFixer();
         BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/word.csv"));
         String line;
         
         while((line = br.readLine()) != null) {
-            fixer.appendText(line);
-            String fixed = fixer.getFixedText();
-            fixer.clear();
+            appendText(line);
+            String fixed = getFixedText();
+            clear();
             if(!line.equals(fixed)) {
                 System.out.println(line);
                 Util.printUnicodeElements(line);
@@ -198,8 +201,8 @@ public class SinhalaVowelLetterFixer {
     }
     
     public static void main(String[] args) throws IOException {
-        String word = "යෝක්‍රෝපෝ";
         SinhalaVowelLetterFixer x = new SinhalaVowelLetterFixer();
+        x.setAppendUnresolvedConsecutiveVowelChars(false);
         x.TestFixer();
     }
     
