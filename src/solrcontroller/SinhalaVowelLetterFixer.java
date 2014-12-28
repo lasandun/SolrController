@@ -26,6 +26,10 @@ public class SinhalaVowelLetterFixer {
                               "ෞ", "ෟ", "ෲ", "ෳ" };
     
     private final Hashtable<String, String> vowelSignMap;
+    
+    // Default - false. Will be enabled for tokenizing for
+    // wildcard search using solr
+    private boolean appendUnresolvedConsecutiveVowelChars; 
 
     public SinhalaVowelLetterFixer() {
         fixedText = "";
@@ -33,6 +37,7 @@ public class SinhalaVowelLetterFixer {
         lastLetter = "";
         vowelSignMap = new Hashtable<String, String>();
         initVowelSignMap();
+        appendUnresolvedConsecutiveVowelChars = true;
     }
     
     private void initVowelSignMap() {
@@ -49,8 +54,12 @@ public class SinhalaVowelLetterFixer {
         
         vowelSignMap.put("ෘෘ", "ෲ");
         
-        vowelSignMap.put("ෙ" + "ෳ", "ෞ");
-        vowelSignMap.put("ෳ" + "ෙ", "ෞ");
+        vowelSignMap.put("ෙ" + "ෟ", "ෞ");
+        vowelSignMap.put("ෟ" + "ෙ", "ෞ");
+        
+        vowelSignMap.put("ි" + "ී", "ී");
+        vowelSignMap.put("ී" + "ි", "ී");
+        
         
         // duplicating same symbol
         vowelSignMap.put("ේ" + "්", "ේ");
@@ -65,15 +74,14 @@ public class SinhalaVowelLetterFixer {
         vowelSignMap.put("ෝ" + "ේ", "ෝ");
         vowelSignMap.put("ෝ" + "ො", "ෝ");
         
-        vowelSignMap.put("ෙෙ", "ෛ");
+        vowelSignMap.put("ෞ" + "ෟ", "ෞ");
+        vowelSignMap.put("ෞ" + "ෙ", "ෞ");
         
-        vowelSignMap.put("ෘෘ", "ෲ");
         
-        vowelSignMap.put("ෙ" + "ෳ", "ෞ");
-        vowelSignMap.put("ෳ" + "ෙ", "ෞ");
-                
-        vowelSignMap.put("ි" + "ී", "ී");
-
+        // special cases - may be typing mistakes
+        //ො + ෟ
+        vowelSignMap.put("ො" + "ෟ", "ෞ");
+        vowelSignMap.put("ෟ" + "ො", "ෞ");
     }
     
     private boolean isSinhalaLetter(String c) {
@@ -108,7 +116,6 @@ public class SinhalaVowelLetterFixer {
         else if(isSinhalaVowelSign(c)) {
             if(lastLetter.equals("")) {
                 System.out.println("Error : First letter can't be a vowel sign : " + c);
-                //System.exit(-1);
                 return;
             }
             if(lastVowelSign.equals("")) {
@@ -122,7 +129,9 @@ public class SinhalaVowelLetterFixer {
                      }
                      else {
                          System.out.println("Error : can't fix " + lastVowelSign + " + " + c);
-                         //System.exit(-1);
+                         if(appendUnresolvedConsecutiveVowelChars) {
+                             lastVowelSign += c;
+                         }
                          return;
                      }
                  }
@@ -165,6 +174,10 @@ public class SinhalaVowelLetterFixer {
         lastLetter = "";
     }
     
+    public void setAppendUnresolvedConsecutiveVowelChars(boolean val) {
+        appendUnresolvedConsecutiveVowelChars = val;
+    }
+    
     public void TestFixer() throws IOException{
         SinhalaVowelLetterFixer fixer = new SinhalaVowelLetterFixer();
         BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/word.csv"));
@@ -175,6 +188,7 @@ public class SinhalaVowelLetterFixer {
             String fixed = fixer.getFixedText();
             fixer.clear();
             if(!line.equals(fixed)) {
+                System.out.println(line);
                 Util.printUnicodeElements(line);
                 Util.printUnicodeElements(fixed);
                 System.out.println("----------------");
@@ -187,16 +201,6 @@ public class SinhalaVowelLetterFixer {
         String word = "යෝක්‍රෝපෝ";
         SinhalaVowelLetterFixer x = new SinhalaVowelLetterFixer();
         x.TestFixer();
-//        x.appendText(word);
-//        System.out.println(x.fixedText);
-//        System.out.println(word.equals(x.fixedText));
-        
-//        String yansaya = "්" + "\u200d" + "ය";
-//        String rakaraya = "්" + "\u200d" + "ර";
-//        String repaya = "ර" + "්" + "\u200d";
-//        
-//        System.out.println("\u0DB6\u0DD4\u0DAF\u0DCA\u200d\u0DB0");
-//        System.out.println("ක්\u200dශ");
     }
     
 }
