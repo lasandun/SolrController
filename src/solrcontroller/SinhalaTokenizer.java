@@ -60,7 +60,6 @@ public class SinhalaTokenizer {
     public final String lineTokenizerDelims;
     
     private void initIgnoringChars() {
-        ignoringCharList.addLast("\u200d");
         ignoringCharList.addLast("\u200c");
         ignoringCharList.addLast("\u0160");
         ignoringCharList.addLast("\u00ad");
@@ -274,6 +273,7 @@ public class SinhalaTokenizer {
         }
         
         // prevent short froms being splitted into sentences
+        // Eg: පෙ.ව.
         for(String shortForm : shortForms) {
             String representation = shortForm.substring(0, shortForm.length() - 1) + shortFormIdentifier;
             str = str.replaceAll(shortForm, representation);

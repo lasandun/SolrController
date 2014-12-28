@@ -129,7 +129,6 @@ public class SinhalaVowelLetterFixer {
                      }
                      else {
                          if(appendUnresolvedConsecutiveVowelChars) {
-                             System.out.println("**********************************************");
                              lastVowelSign += c;
                          }
                          else {
@@ -202,7 +201,7 @@ public class SinhalaVowelLetterFixer {
     
     public static void main(String[] args) throws IOException {
         SinhalaVowelLetterFixer x = new SinhalaVowelLetterFixer();
-        x.setAppendUnresolvedConsecutiveVowelChars(false);
+        x.setAppendUnresolvedConsecutiveVowelChars(false); // take only first vowel sign if consecutive unsolvable vowel signs present
         x.TestFixer();
     }
     
