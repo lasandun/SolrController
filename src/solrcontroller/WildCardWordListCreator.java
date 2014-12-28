@@ -30,11 +30,11 @@ public class WildCardWordListCreator {
     int fileCount;
     int rejectedWordsCount;
     int acceptedWordCount;
-    private boolean debug = false;
-    private int id;
+    private boolean debug = true;
+    //private int id;
     
     public WildCardWordListCreator() {
-        id = 0;
+        //id = 0;
         fileCount = 0;
         rejectedWordsCount = 0;
         acceptedWordCount = 0;
@@ -100,7 +100,7 @@ public class WildCardWordListCreator {
     
     
     public static double getSinhalaOnlyRatio(String str) {
-        // sinhala unicode range is 0D80–0DFF. (from http://ucsc.cmb.ac.lk/ltrl/publications/uni_sin.pdf )
+        // sinhala unicode range is 0D80–0DFF
         int sinhalaLowerBound = 3456;
         int sinhalaUpperBound = 3583;
         int sinhalaCharCount = 0;
@@ -132,25 +132,32 @@ public class WildCardWordListCreator {
     public void parseToXMLs(boolean checkForIncorrectWords) throws IOException {
         int count = 0;
         
-        BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/words.txt"));
+        BufferedReader br = new BufferedReader(new FileReader("/home/lahiru/Desktop/word.csv"));
         String line;
         //SinhalaDocFilter filter = new SinhalaDocFilter(0.67);
         br.readLine();
         while((line = br.readLine()) != null) {
+            line = line.replaceAll(" ", "");
+            line = line.replaceAll("\"", "");
+            String parts[] = line.split(",");
             
-            String word = line;
-            String docID = String.format("%06d", this.id++);
             
-//            if(!isAcceptedWord(line)) {
-//                if(debug) System.out.println("not accepted: " + word);
-//                ++rejectedWordsCount;
-//                continue;
-//            } else {
-//                acceptedWordCount++;
-//            }
-            //if(checkForIncorrectWords) SolrWildCardSinhalaWordParser.checkEncodeNDecode(word);
+//            String word = line;
+//            String docID = String.format("%06d", this.id++);
+            String id = parts[0];
+            String word = parts[1];
+            String freq = parts[2];
             
-            addWord(docID, word, "1");
+            if(!isAcceptedWord(word)) {
+                if(debug) System.out.println("not accepted: " + word);
+                ++rejectedWordsCount;
+                continue;
+            } else {
+                acceptedWordCount++;
+            }
+            if(checkForIncorrectWords) SolrWildCardSinhalaWordParser.checkEncodeNDecode(word);
+            
+            addWord(id, word, freq);
             ++count;
             
             if(count > 100000) {

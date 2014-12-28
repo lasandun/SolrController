@@ -27,6 +27,10 @@ import java.util.regex.Pattern;
  */
 public class Util {
     
+    String yansaya = "්" + "\u200d" + "ය"; // letter + yansaya + pillama
+    String rakaraya = "්" + "\u200d" + "ර"; // letter + rakaraya + pillama
+    String repaya = "ර" + "්" + "\u200d"; // repaya + letter
+    
     public static String refactorDirPath(String path) {
         if (path.charAt(path.length() - 1) != '/') {
             path = path + "/";
@@ -138,4 +142,24 @@ public class Util {
         System.out.println();
     }
     
+    public static void printUnicodeHex(String str) {
+        for(int i = 0; i < str.length(); ++i) {
+            System.out.print(str.charAt(i) + "-" + Integer.toHexString(str.codePointAt(i)) + " ");
+        }
+        System.out.println();
+    }
+    
+    public static void main(String[] args) {
+        String s = "අනුග්‍ර";
+        System.out.println(s);
+        printUnicodeHex(s);
+        System.out.println("\u0dc3\u0dad\u200d\u0dad\u0dca");
+        printUnicodeElements("සත‍ත්");
+        printUnicodeHex("ග\u200dර");
+        System.out.println("");
+    }
+    
+    public static void charToUnicode(char c) {
+        System.out.println(Integer.toHexString(("" + c).codePointAt(0)));
+    }
 }
